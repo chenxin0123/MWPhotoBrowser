@@ -176,7 +176,7 @@
     BOOL startOnGrid = NO;
     BOOL autoPlayOnAppear = NO;
 	switch (indexPath.row) {
-		case 0:
+		case 0://Single photo
             // Photos
             photo = [MWPhoto photoWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"photo2" ofType:@"jpg"]]];
             photo.caption = @"The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England.";
@@ -1077,6 +1077,7 @@
             break;
         }
 		case 9: {
+            /** 获取本地图片 大小为屏幕宽度乘以scale 按比例缩放 */
             @synchronized(_assets) {
                 NSMutableArray *copy = [_assets copy];
                 if (NSClassFromString(@"PHAsset")) {
@@ -1111,8 +1112,8 @@
 	}
     self.photos = photos;
     self.thumbs = thumbs;
-	
 	// Create browser
+    
 	MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     browser.displayActionButton = displayActionButton;
     browser.displayNavArrows = displayNavArrows;
@@ -1121,7 +1122,7 @@
     browser.zoomPhotosToFill = YES;
     browser.enableGrid = enableGrid;
     browser.startOnGrid = startOnGrid;
-    browser.enableSwipeToDismiss = NO;
+//    browser.enableSwipeToDismiss = NO;
     browser.autoPlayOnAppear = autoPlayOnAppear;
     [browser setCurrentPhotoIndex:0];
     
@@ -1137,7 +1138,9 @@
         }
     }
     
-    // Show
+    
+    
+    // push 或者 model
     if (_segmentedControl.selectedSegmentIndex == 0) {
         // Push
         [self.navigationController pushViewController:browser animated:YES];
@@ -1234,6 +1237,9 @@
 
 #pragma mark - Load Assets
 
+/**
+ *    如若是ios8 则先获取相册权限
+ */
 - (void)loadAssets {
     if (NSClassFromString(@"PHAsset")) {
         
@@ -1257,6 +1263,9 @@
     }
 }
 
+/**
+ *    根据系统版本使用Photos 或者 Assets获取系统的相片以及视频
+ */
 - (void)performLoadAssets {
     
     // Initialise

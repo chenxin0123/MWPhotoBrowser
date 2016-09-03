@@ -1,4 +1,4 @@
-//
+//！
 //  UIImage+MWPhotoBrowser.h
 //  Pods
 //
@@ -11,6 +11,10 @@
 @interface UIImage (MWPhotoBrowser)
 
 + (UIImage *)imageForResourcePath:(NSString *)path ofType:(NSString *)type inBundle:(NSBundle *)bundle;
+
+/**
+ * 返回一个透明的图片
+ */
 + (UIImage *)clearImageWithSize:(CGSize)size;
 
 @end

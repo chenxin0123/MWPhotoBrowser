@@ -218,7 +218,10 @@
 }
 
 #pragma mark - Notifications
-
+/**
+ * MWPHOTO_PROGRESS_NOTIFICATION回调
+ * 更新下载进度
+ */
 - (void)setProgressFromNotification:(NSNotification *)notification {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSDictionary *dict = [notification object];
@@ -231,6 +234,10 @@
     });
 }
 
+/**
+ * MWPHOTO_LOADING_DID_END_NOTIFICATION通知回调
+ * READ
+ */
 - (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
     id <MWPhoto> photo = [notification object];
     if (photo == _photo) {

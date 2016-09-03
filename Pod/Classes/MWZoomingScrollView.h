@@ -1,4 +1,4 @@
-//
+//！
 //  ZoomingScrollView.h
 //  MWPhotoBrowser
 //
@@ -13,6 +13,9 @@
 
 @class MWPhotoBrowser, MWPhoto, MWCaptionView;
 
+/**
+ *  图片或者视频的容器 每个MWZoomingScrollView表示一个图片/视频
+ */
 @interface MWZoomingScrollView : UIScrollView <UIScrollViewDelegate, MWTapDetectingImageViewDelegate, MWTapDetectingViewDelegate> {
 
 }

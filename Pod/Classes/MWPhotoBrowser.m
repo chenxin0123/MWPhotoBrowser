@@ -15,11 +15,13 @@
 
 #define PADDING                  10
 
-static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
-
 @implementation MWPhotoBrowser
 
 #pragma mark - Init
+
+/**
+ * 初始化方法 都会调用到_initialisation
+ */
 
 - (id)init {
     if ((self = [super init])) {
@@ -49,6 +51,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 	return self;
 }
 
+/**
+ * 初始化 注册MWPHOTO_LOADING_DID_END_NOTIFICATION通知
+ */
 - (void)_initialisation {
     
     // Defaults
@@ -58,6 +63,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     } else {
         _isVCBasedStatusBarAppearance = YES; // default
     }
+    
     self.hidesBottomBarWhenPushed = YES;
     _hasBelongedToViewController = NO;
     _photoCount = NSNotFound;
@@ -99,6 +105,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     [[SDImageCache sharedImageCache] clearMemory]; // clear memory
 }
 
+/**
+ *  清除图片
+ *  @param preserveCurrent 是否保留当前显示的图片
+ */
 - (void)releaseAllUnderlyingPhotos:(BOOL)preserveCurrent {
     // Create a copy in case this array is modified while we are looping through
     // Release photos
@@ -120,6 +130,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     }
 }
 
+/**
+ *  清除_recycledPages 清除除当前页之外的图片
+ */
 - (void)didReceiveMemoryWarning {
 
 	// Release any cached data, images, etc that aren't in use.
@@ -427,6 +440,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     
 }
 
+/** 
+ * 当从父控制器移除时 parent为nil
+ * READ
+ */
+
 - (void)willMoveToParentViewController:(UIViewController *)parent {
     if (parent && _hasBelongedToViewController) {
         [NSException raise:@"MWPhotoBrowser Instance Reuse" format:@"MWPhotoBrowser instances cannot be reused."];
@@ -632,6 +650,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     
 }
 
+/**
+ * 返回照片数量 用NSNotFound来控制只计算一次
+ */
 - (NSUInteger)numberOfPhotos {
     if (_photoCount == NSNotFound) {
         if ([_delegate respondsToSelector:@selector(numberOfPhotosInPhotoBrowser:)]) {
@@ -644,6 +665,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     return _photoCount;
 }
 
+/**
+ * _photos中已经有了直接返回_photos中的photo 否则调用delegate>_fixedPhotosArray
+ */
 - (id<MWPhoto>)photoAtIndex:(NSUInteger)index {
     id <MWPhoto> photo = nil;
     if (index < _photos.count) {
@@ -708,6 +732,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     }
 }
 
+/**
+ * 如果有图片直接显示
+ * 没有图片则加载
+ */
 - (UIImage *)imageForPhoto:(id<MWPhoto>)photo {
 	if (photo) {
 		// Get image or obtain in background
@@ -720,6 +748,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 	return nil;
 }
 
+/**
+ * 如果photo是当前正在显示的则加载左右的邻近图片
+ */
 - (void)loadAdjacentPhotosIfNecessary:(id<MWPhoto>)photo {
     MWZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
@@ -747,7 +778,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 }
 
 #pragma mark - MWPhoto Loading Notification
-
+/**
+ * MWPHOTO_LOADING_DID_END_NOTIFICATION通知回调
+ * 显示图片 或者显示加载失败图标
+ * READ
+ */
 - (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
     id <MWPhoto> photo = [notification object];
     MWZoomingScrollView *page = [self pageDisplayingPhoto:photo];
@@ -885,6 +920,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 	return thePage;
 }
 
+/**
+ * 返回正在显示photo的page 从_visiblePages中遍历
+ */
 - (MWZoomingScrollView *)pageDisplayingPhoto:(id<MWPhoto>)photo {
 	MWZoomingScrollView *thePage = nil;
 	for (MWZoomingScrollView *page in _visiblePages) {
@@ -971,6 +1009,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 #pragma mark - Frame Calculations
 
+/**
+ * self.view.bounds 左右两边各多10个点
+ */
 - (CGRect)frameForPagingScrollView {
     CGRect frame = self.view.bounds;// [[UIScreen mainScreen] bounds];
     frame.origin.x -= PADDING;
@@ -990,6 +1031,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     return CGRectIntegral(pageFrame);
 }
 
+/**
+ * 根据photo数量返回_pagingScrollView的contentSize
+ * READ
+ */
 - (CGSize)contentSizeForPagingScrollView {
     // We have to use the paging scroll view's bounds to calculate the contentSize, for the same reason outlined above.
     CGRect bounds = _pagingScrollView.bounds;
@@ -1077,6 +1122,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 #pragma mark - Navigation
 
+/**
+ * 更新导航栏标题 更新上一个/下一个按钮的enabled属性 更新_actionButton的enabled属性以及tintColor
+ */
 - (void)updateNavigation {
     
 	// Title
@@ -1190,7 +1238,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 }
 
 #pragma mark - Video
-
+/**
+ * 播放视频
+ * READ
+ */
 - (void)playVideoAtIndex:(NSUInteger)index {
     id photo = [self photoAtIndex:index];
     if ([photo respondsToSelector:@selector(getVideoURL:)]) {

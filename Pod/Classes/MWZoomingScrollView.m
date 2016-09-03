@@ -28,7 +28,11 @@
 @end
 
 @implementation MWZoomingScrollView
-
+/**
+ * 初始化子视图
+ * 监听MWPHOTO_PROGRESS_NOTIFICATION
+ * self.delegate = self;
+ */
 - (id)initWithPhotoBrowser:(MWPhotoBrowser *)browser {
     if ((self = [super init])) {
         
@@ -77,6 +81,9 @@
     return self;
 }
 
+/**
+ * 取消正在进行的加载任务
+ */
 - (void)dealloc {
     if ([_photo respondsToSelector:@selector(cancelAnyLoading)]) {
         [_photo cancelAnyLoading];
@@ -84,6 +91,9 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
+/**
+ *  重用 模仿cell的重用
+ */
 - (void)prepareForReuse {
     [self hideImageFailure];
     self.photo = nil;
@@ -95,16 +105,24 @@
     _index = NSUIntegerMax;
 }
 
+/** 返回photo是否为video */
 - (BOOL)displayingVideo {
     return [_photo respondsToSelector:@selector(isVideo)] && _photo.isVideo;
 }
 
+/**
+ *  隐藏ImgaeView
+ */
 - (void)setImageHidden:(BOOL)hidden {
     _photoImageView.hidden = hidden;
 }
 
 #pragma mark - Image
 
+/**
+ *  设置photo
+ *  有图则显示 无则则加载
+ */
 - (void)setPhoto:(id<MWPhoto>)photo {
     // Cancel any loading on old photo
     if (_photo && photo == nil) {
@@ -122,7 +140,11 @@
     }
 }
 
-// Get and display image
+/**
+ *  获取图片 如果获取失败则显示失败视图
+ *  获取成功 隐藏不相关的视图 显示_photoImageView 设置_photoImageView的size与contentSize为图片的size
+ *  调用setMaxMinZoomScalesForCurrentBounds
+ */
 - (void)displayImage {
 	if (_photo && _photoImageView.image == nil) {
 		
@@ -164,6 +186,10 @@
 }
 
 // Image failed so just show black!
+
+/**
+ * 显示加载失败图片
+ */
 - (void)displayImageFailure {
     [self hideLoadingIndicator];
     _photoImageView.image = nil;
@@ -172,6 +198,9 @@
     if (![_photo respondsToSelector:@selector(emptyImage)] || !_photo.emptyImage) {
         if (!_loadingError) {
             _loadingError = [UIImageView new];
+            
+            NSString *s = [NSBundle bundleForClass:[self class]];
+            NSString *s2 = [NSBundle mainBundle];
             _loadingError.image = [UIImage imageForResourcePath:@"MWPhotoBrowser.bundle/ImageError" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]];
             _loadingError.userInteractionEnabled = NO;
             _loadingError.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin |
@@ -186,6 +215,9 @@
     }
 }
 
+/**
+ * 隐藏加载失败图片
+ */
 - (void)hideImageFailure {
     if (_loadingError) {
         [_loadingError removeFromSuperview];
@@ -194,7 +226,10 @@
 }
 
 #pragma mark - Loading Progress
-
+/**
+ * MWPHOTO_PROGRESS_NOTIFICATION回调
+ * 更新下载进度
+ */
 - (void)setProgressFromNotification:(NSNotification *)notification {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSDictionary *dict = [notification object];
@@ -206,10 +241,14 @@
     });
 }
 
+/** 隐藏指示器 */
 - (void)hideLoadingIndicator {
     _loadingIndicator.hidden = YES;
 }
 
+/**
+ *  显示指示器 隐藏加载失败图
+ */
 - (void)showLoadingIndicator {
     self.zoomScale = 0;
     self.minimumZoomScale = 0;
@@ -221,6 +260,9 @@
 
 #pragma mark - Setup
 
+/**
+ * 根据photo返回合适的zoomScale
+ */
 - (CGFloat)initialZoomScaleWithMinScale {
     CGFloat zoomScale = self.minimumZoomScale;
     if (_photoImageView && _photoBrowser.zoomPhotosToFill) {
@@ -241,6 +283,14 @@
     return zoomScale;
 }
 
+/**
+ * 根据self.size以及图片size计算xscale与yscale 取两者最小值为minScale
+ * 若两个scale均大于1 minScale取1
+ * 设置minScale<self.scale<maxScale
+ * 调用initialZoomScaleWithMinScale获取当前的scale
+ * 调整显示区域到中心
+ * 判断是否显示video 是的话不允许scale
+ */
 - (void)setMaxMinZoomScalesForCurrentBounds {
     
     // Reset
@@ -307,6 +357,9 @@
 
 #pragma mark - Layout
 
+/**
+ * 调整_photoImageView的origin 使其居中
+ */
 - (void)layoutSubviews {
 	
 	// Update tap view frame
@@ -377,10 +430,20 @@
 
 #pragma mark - Tap Detection
 
+/**
+ * 延迟0.2秒执行_photoBrowser的toggleControls方法
+ * 若0.2内handleDoubleTap触发则toggleControls不会执行
+ */
 - (void)handleSingleTap:(CGPoint)touchPoint {
 	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
 }
 
+
+/**
+ * 取消handleSingleTap的操作
+ * 若zoomScale不是minimumZoomScale 且不等于initialZoomScaleWithMinScale的scale 收缩至minimumZoomScale
+ * 否则放大点击的地方至屏幕中心
+ */
 - (void)handleDoubleTap:(CGPoint)touchPoint {
     
     // Dont double tap to zoom if showing a video
@@ -420,7 +483,11 @@
     [self handleDoubleTap:[touch locationInView:imageView]];
 }
 
-// Background View
+
+/**
+ * Background View
+ * 根据zoomScale以及contentOffset计算Touch Point
+ */
 - (void)view:(UIView *)view singleTapDetected:(UITouch *)touch {
     // Translate touch location to image view location
     CGFloat touchX = [touch locationInView:view].x;

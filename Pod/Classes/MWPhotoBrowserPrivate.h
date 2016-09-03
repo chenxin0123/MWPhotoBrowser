@@ -15,10 +15,10 @@
 // Declare private methods of browser
 @interface MWPhotoBrowser () {
     
-	// Data
+	///不使用代理时的数据_fixedPhotosArray用来修改要显示的内容
     NSUInteger _photoCount;
     NSMutableArray *_photos;
-    NSMutableArray *_thumbPhotos;
+    NSMutableArray *_thumbPhotos;///<优先级高于代理
 	NSArray *_fixedPhotosArray; // Provided via init
 	
 	// Views
@@ -66,11 +66,11 @@
     BOOL _leaveStatusBarAlone;
 	BOOL _performingLayout;
 	BOOL _rotating;
-    BOOL _viewIsActive; // active as in it's in the view heirarchy
-    BOOL _didSavePreviousStateOfNavBar;
+    BOOL _viewIsActive; ///<视图是否可见
+    BOOL _didSavePreviousStateOfNavBar;///<是否保存了导航栏的状态
     BOOL _skipNextPagingScrollViewPositioning;
     BOOL _viewHasAppearedInitially;
-    CGPoint _currentGridContentOffset;
+    CGPoint _currentGridContentOffset;///默认值CGPointMake(0, CGFLOAT_MAX); CGFLOAT_MAX作为占位符 !=CGFLOAT_MAX的值才有效
     
 }
 

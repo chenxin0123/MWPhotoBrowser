@@ -15,8 +15,8 @@
 
 @interface MWPhoto () {
 
-    BOOL _loadingInProgress;
-    id <SDWebImageOperation> _webImageOperation;
+    BOOL _loadingInProgress;///是否正在加载图片
+    id <SDWebImageOperation> _webImageOperation;///图片下载operation
     PHImageRequestID _assetRequestID;
     PHImageRequestID _assetVideoRequestID;
         
@@ -49,6 +49,7 @@
     return [[MWPhoto alloc] initWithAsset:asset targetSize:targetSize];
 }
 
+/** 远程视频 */
 + (MWPhoto *)videoWithURL:(NSURL *)url {
     return [[MWPhoto alloc] initWithVideoURL:url];
 }
@@ -79,6 +80,7 @@
     return self;
 }
 
+/** 可能是图片也可能是video */
 - (id)initWithAsset:(PHAsset *)asset targetSize:(CGSize)targetSize {
     if ((self = [super init])) {
         self.asset = asset;
@@ -104,6 +106,7 @@
     _assetVideoRequestID = PHInvalidImageRequestID;
 }
 
+/** 释放前取消加载操作 */
 - (void)dealloc {
     [self cancelAnyLoading];
 }
@@ -115,6 +118,9 @@
     self.isVideo = YES;
 }
 
+/**
+ *    如果是相册里面的视频 则返回对应的AVURLAsset.Url 如果是远程视频则直接返回url
+ */
 - (void)getVideoURL:(void (^)(NSURL *url))completion {
     if (_videoURL) {
         completion(_videoURL);
@@ -145,6 +151,12 @@
     return _underlyingImage;
 }
 
+
+/**
+ * 该方法只能在主线程运行
+ * 如果图片已加载则调用imageLoadingComplete
+ * 调用performLoadUnderlyingImageAndNotify异步加载图片
+ */
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     if (_loadingInProgress) return;
@@ -165,7 +177,13 @@
     }
 }
 
-// Set the underlyingImage
+/**
+ * 设置图片 
+ * 1.已有图片 
+ * 2.有url 判断url类型assets-library | fileUrl | remoteUrl
+ * 3.PHAsset
+ * 4.无图片
+ */
 - (void)performLoadUnderlyingImageAndNotify {
     
     // Get underlying image
@@ -208,7 +226,7 @@
     }
 }
 
-// Load from local file
+/** 使用SDWebImage下载图片 */
 - (void)_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url {
     @try {
         SDWebImageManager *manager = [SDWebImageManager sharedManager];
@@ -240,7 +258,7 @@
     }
 }
 
-// Load from local file
+/** 从文件夹加载图片 */
 - (void)_performLoadUnderlyingImageAndNotifyWithLocalFileURL:(NSURL *)url {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         @autoreleasepool {
@@ -256,7 +274,10 @@
     });
 }
 
-// Load from asset library async
+/**
+ * Load from asset library async
+ * 使用AssetsLibrary从本地加载图片
+ */
 - (void)_performLoadUnderlyingImageAndNotifyWithAssetsLibraryURL:(NSURL *)url {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         @autoreleasepool {
@@ -284,7 +305,10 @@
     });
 }
 
-// Load from photos library
+/** 
+ * 使用Photos图片框架来加载本地图片
+ *
+ */
 - (void)_performLoadUnderlyingImageAndNotifyWithAsset:(PHAsset *)asset targetSize:(CGSize)targetSize {
     
     PHImageManager *imageManager = [PHImageManager defaultManager];
@@ -295,11 +319,13 @@
     options.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
     options.synchronous = false;
     options.progressHandler = ^(double progress, NSError *error, BOOL *stop, NSDictionary *info) {
+        /** 将self放到dict里面 将dict作为通知的发送者 */
         NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
                               [NSNumber numberWithDouble: progress], @"progress",
                               self, @"photo", nil];
         [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_PROGRESS_NOTIFICATION object:dict];
     };
+    
     
     _assetRequestID = [imageManager requestImageForAsset:asset targetSize:targetSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage *result, NSDictionary *info) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -316,6 +342,11 @@
 	self.underlyingImage = nil;
 }
 
+
+/** 
+ * 只能在主线程调用
+ * 发送图片加载完成通知
+ */
 - (void)imageLoadingComplete {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     // Complete so notify
@@ -324,11 +355,16 @@
     [self performSelector:@selector(postCompleteNotification) withObject:nil afterDelay:0];
 }
 
+
+/** 发送图片加载完成通知 */
 - (void)postCompleteNotification {
     [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_LOADING_DID_END_NOTIFICATION
                                                         object:self];
 }
 
+/**
+ *    取消图片加载动作 Photos图片请求|网络请求
+ */
 - (void)cancelAnyLoading {
     if (_webImageOperation != nil) {
         [_webImageOperation cancel];
@@ -338,6 +374,7 @@
     [self cancelVideoRequest];
 }
 
+/** 取消Photos框架的图片请求 */
 - (void)cancelImageRequest {
     if (_assetRequestID != PHInvalidImageRequestID) {
         [[PHImageManager defaultManager] cancelImageRequest:_assetRequestID];
@@ -345,6 +382,7 @@
     }
 }
 
+/** 取消Photos框架的视频请求 */
 - (void)cancelVideoRequest {
     if (_assetVideoRequestID != PHInvalidImageRequestID) {
         [[PHImageManager defaultManager] cancelImageRequest:_assetVideoRequestID];

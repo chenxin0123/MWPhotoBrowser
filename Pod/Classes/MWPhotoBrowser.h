@@ -38,19 +38,22 @@
 
 @end
 
+/**
+ *    图片浏览视图控制器
+ */
 @interface MWPhotoBrowser : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, weak) IBOutlet id<MWPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
-@property (nonatomic) BOOL displayNavArrows;
-@property (nonatomic) BOOL displayActionButton;
+@property (nonatomic) BOOL displayNavArrows;///<显示底部上一个下一个按钮
+@property (nonatomic) BOOL displayActionButton;///<是否显示导航栏右边的动作按钮
 @property (nonatomic) BOOL displaySelectionButtons;
 @property (nonatomic) BOOL alwaysShowControls;
-@property (nonatomic) BOOL enableGrid;
-@property (nonatomic) BOOL enableSwipeToDismiss;
-@property (nonatomic) BOOL startOnGrid;
+@property (nonatomic) BOOL enableGrid;///<是否可显示表格
+@property (nonatomic) BOOL enableSwipeToDismiss;///<可以上下两个方向Swipe来dismiss 仅model时有效
+@property (nonatomic) BOOL startOnGrid;///<直接显示表格
 @property (nonatomic) BOOL autoPlayOnAppear;
-@property (nonatomic) NSUInteger delayToHideElements;
+@property (nonatomic) NSUInteger delayToHideElements;///<自动隐藏其他空间的延迟时间
 @property (nonatomic, readonly) NSUInteger currentIndex;
 
 // Customise image selection icons as they are the only icons with a colour tint

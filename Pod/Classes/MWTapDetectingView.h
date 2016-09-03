@@ -1,4 +1,4 @@
-//
+//!
 //  UIViewTap.h
 //  Momento
 //
@@ -10,6 +10,9 @@
 
 @protocol MWTapDetectingViewDelegate;
 
+/**
+ *  用来接收空白地方的tap
+ */
 @interface MWTapDetectingView : UIView {}
 
 @property (nonatomic, weak) id <MWTapDetectingViewDelegate> tapDelegate;

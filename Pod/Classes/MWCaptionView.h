@@ -1,4 +1,4 @@
-//
+//!
 //  MWCaptionView.h
 //  MWPhotoBrowser
 //
@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "MWPhotoProtocol.h"
 
+/**
+ 用来显示图片标题
+ */
 @interface MWCaptionView : UIToolbar
 
 // Init
