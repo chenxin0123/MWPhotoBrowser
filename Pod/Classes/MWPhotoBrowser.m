@@ -146,7 +146,7 @@
 
 #pragma mark - View Loading
 
-// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+/** 初始化子控件 toolbar 各个按钮 手势 */
 - (void)viewDidLoad {
     
     // Validate grid settings
@@ -208,6 +208,9 @@
 	
 }
 
+/**
+ * 重置toobar items 各个子空间 该方法只被调用一次
+ */
 - (void)performLayout {
     
     // Setup
@@ -321,6 +324,7 @@
     [super viewDidUnload];
 }
 
+/** 返回上一层视图控制器 */
 - (BOOL)presentingViewControllerPrefersStatusBarHidden {
     UIViewController *presenting = self.presentingViewController;
     if (presenting) {
@@ -342,6 +346,9 @@
 
 #pragma mark - Appearance
 
+/**
+ *  保存上一个导航栏的状态
+ */
 - (void)viewWillAppear:(BOOL)animated {
     
 	// Super
@@ -442,7 +449,6 @@
 
 /** 
  * 当从父控制器移除时 parent为nil
- * READ
  */
 
 - (void)willMoveToParentViewController:(UIViewController *)parent {
@@ -457,6 +463,9 @@
 
 #pragma mark - Nav Bar Appearance
 
+/**
+ *  设置导航栏属性
+ */
 - (void)setNavBarAppearance:(BOOL)animated {
     [self.navigationController setNavigationBarHidden:NO animated:animated];
     UINavigationBar *navBar = self.navigationController.navigationBar;
@@ -469,6 +478,9 @@
     [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
 }
 
+/**
+ *  保存导航栏属性
+ */
 - (void)storePreviousNavBarAppearance {
     _didSavePreviousStateOfNavBar = YES;
     _previousNavBarBarTintColor = self.navigationController.navigationBar.barTintColor;
@@ -480,6 +492,7 @@
     _previousNavigationBarBackgroundImageLandscapePhone = [self.navigationController.navigationBar backgroundImageForBarMetrics:UIBarMetricsLandscapePhone];
 }
 
+/** 取回导航栏状态 */
 - (void)restorePreviousNavBarAppearance:(BOOL)animated {
     if (_didSavePreviousStateOfNavBar) {
         [self.navigationController setNavigationBarHidden:_previousNavBarHidden animated:animated];
@@ -506,6 +519,9 @@
     [self layoutVisiblePages];
 }
 
+/**
+ * 布局子控件
+ */
 - (void)layoutVisiblePages {
     
 	// Flag
@@ -617,6 +633,8 @@
     return _currentPageIndex;
 }
 
+
+/** 重置内容 包括_photos _thumbPhotos 移除_pagingScrollView的所有子视图 */
 - (void)reloadData {
     
     // Reset
@@ -781,7 +799,6 @@
 /**
  * MWPHOTO_LOADING_DID_END_NOTIFICATION通知回调
  * 显示图片 或者显示加载失败图标
- * READ
  */
 - (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
     id <MWPhoto> photo = [notification object];
@@ -1019,6 +1036,7 @@
     return CGRectIntegral(frame);
 }
 
+/** 根据index返回该页的frame */
 - (CGRect)frameForPageAtIndex:(NSUInteger)index {
     // We have to use our paging scroll view's bounds, not frame, to calculate the page placement. When the device is in
     // landscape orientation, the frame will still be in portrait because the pagingScrollView is the root view controller's
@@ -1033,7 +1051,6 @@
 
 /**
  * 根据photo数量返回_pagingScrollView的contentSize
- * READ
  */
 - (CGSize)contentSizeForPagingScrollView {
     // We have to use the paging scroll view's bounds to calculate the contentSize, for the same reason outlined above.
@@ -1041,12 +1058,14 @@
     return CGSizeMake(bounds.size.width * [self numberOfPhotos], bounds.size.height);
 }
 
+/** contentOffset */
 - (CGPoint)contentOffsetForPageAtIndex:(NSUInteger)index {
 	CGFloat pageWidth = _pagingScrollView.bounds.size.width;
 	CGFloat newOffset = index * pageWidth;
 	return CGPointMake(newOffset, 0);
 }
 
+/** toolbar的frame iphone上横屏时高度为32 否则高度为44 */
 - (CGRect)frameForToolbarAtOrientation:(UIInterfaceOrientation)orientation {
     CGFloat height = 44;
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone &&
@@ -1054,6 +1073,7 @@
 	return CGRectIntegral(CGRectMake(0, self.view.bounds.size.height - height, self.view.bounds.size.width, height));
 }
 
+/** 返回图片标题视图的frame */
 - (CGRect)frameForCaptionView:(MWCaptionView *)captionView atIndex:(NSUInteger)index {
     CGRect pageFrame = [self frameForPageAtIndex:index];
     CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
@@ -1064,6 +1084,7 @@
     return CGRectIntegral(captionFrame);
 }
 
+/** 返回选择按钮的frame  */
 - (CGRect)frameForSelectedButton:(UIButton *)selectedButton atIndex:(NSUInteger)index {
     CGRect pageFrame = [self frameForPageAtIndex:index];
     CGFloat padding = 20;
@@ -1240,7 +1261,6 @@
 #pragma mark - Video
 /**
  * 播放视频
- * READ
  */
 - (void)playVideoAtIndex:(NSUInteger)index {
     id photo = [self photoAtIndex:index];
@@ -1449,6 +1469,10 @@
 
 // If permanent then we don't set timers to hide again
 // Fades all controls on iOS 5 & 6, and iOS 7 controls slide and fade
+
+/**
+ * 隐藏或者显示子控件 包括状态栏
+ */
 - (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent {
     
     // Force visible
@@ -1546,6 +1570,9 @@
 	
 }
 
+/** 状态栏 */
+
+/** 返回_statusBarShouldBeHidden 或者  调用presentingViewControllerPrefersStatusBarHidden*/
 - (BOOL)prefersStatusBarHidden {
     if (!_leaveStatusBarAlone) {
         return _statusBarShouldBeHidden;
@@ -1562,6 +1589,7 @@
     return UIStatusBarAnimationSlide;
 }
 
+/** 取消隐藏子控件的计时器 */
 - (void)cancelControlHiding {
 	// If a timer exists then cancel and release
 	if (_controlVisibilityTimer) {
@@ -1570,7 +1598,7 @@
 	}
 }
 
-// Enable/disable control visiblity timer
+/** 延迟delayToHideElements时间后调用hideControls */
 - (void)hideControlsAfterDelay {
 	if (![self areControlsHidden]) {
         [self cancelControlHiding];
@@ -1578,6 +1606,9 @@
 	}
 }
 
+/**
+ *  其他子控件的隐藏于显示
+ */
 - (BOOL)areControlsHidden { return (_toolbar.alpha == 0); }
 - (void)hideControls { [self setControlsHidden:YES animated:YES permanent:NO]; }
 - (void)showControls { [self setControlsHidden:NO animated:YES permanent:NO]; }

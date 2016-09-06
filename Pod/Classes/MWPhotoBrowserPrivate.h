@@ -63,13 +63,13 @@
     BOOL _isVCBasedStatusBarAppearance;
     BOOL _statusBarShouldBeHidden;
     BOOL _displayActionButton;
-    BOOL _leaveStatusBarAlone;
+    BOOL _leaveStatusBarAlone;///<不显示状态栏
 	BOOL _performingLayout;
 	BOOL _rotating;
     BOOL _viewIsActive; ///<视图是否可见
     BOOL _didSavePreviousStateOfNavBar;///<是否保存了导航栏的状态
     BOOL _skipNextPagingScrollViewPositioning;
-    BOOL _viewHasAppearedInitially;
+    BOOL _viewHasAppearedInitially;///<是否是第一次appear
     CGPoint _currentGridContentOffset;///默认值CGPointMake(0, CGFLOAT_MAX); CGFLOAT_MAX作为占位符 !=CGFLOAT_MAX的值才有效
     
 }

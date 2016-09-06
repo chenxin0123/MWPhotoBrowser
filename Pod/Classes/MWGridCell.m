@@ -236,7 +236,6 @@
 
 /**
  * MWPHOTO_LOADING_DID_END_NOTIFICATION通知回调
- * READ
  */
 - (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
     id <MWPhoto> photo = [notification object];
